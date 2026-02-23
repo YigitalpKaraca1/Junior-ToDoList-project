@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Notebook</title>
+</head>
+<body>
+
+    <h1>Görev Takip Uygulaması</h1>
+
+    <form method="POST">
+        <input type="text" name="task" placeholder="Görev yaz..." required>
+        <button type="submit">Ekle</button>
+    </form>
+
+    <ul>
+    {% if tasks %}
+        {% for t in tasks %}
+            <li>
+                {{ t }}
+
+                <form method="POST" style="display:inline;">
+                    <input type="hidden" name="delete_index" value="{{ loop.index0 }}">
+                    <button type="submit">Sil</button>
+                </form>
+
+            </li>
+        {% endfor %}
+    {% else %}
+        <li>Henüz görev yok.</li>
+    {% endif %}
+    </ul>
+    <form method="POST">
+        <input type="search" name="searchbar"  placeholder="Arama Yap" id="searchbar" value="{{search}}">
+        <button type="submit">Ara</button>
+    </form>
+
+    <p>Toplam görev sayısı = {{ toplam_gorev }}</p>
+
+</body>
+</html>
