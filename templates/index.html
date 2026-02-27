@@ -5,36 +5,83 @@
 </head>
 <body>
 
-    <h1>Görev Takip Uygulaması</h1>
+<h1>Görev Takip Uygulaması</h1>
 
-    <form method="POST">
-        <input type="text" name="task" placeholder="Görev yaz..." required>
-        <button type="submit">Ekle</button>
-    </form>
+<!-- EKLEME FORMU -->
+<form id="addForm">
+    <input type="text" name="task" placeholder="Görev yaz..." required>
+    <button type="submit">Ekle</button>
+</form>
 
-    <ul>
-    {% if tasks %}
-        {% for t in tasks %}
-            <li>
-                {{ t }}
+<ul id="taskList">
+{% for t in tasks %}
+    <li>
+        {{ t }}
+        <button onclick="deleteTask({{ loop.index0 }})">Sil</button>
+    </li>
+{% endfor %}
+</ul>
 
-                <form method="POST" style="display:inline;">
-                    <input type="hidden" name="delete_index" value="{{ loop.index0 }}">
-                    <button type="submit">Sil</button>
-                </form>
+<p>Toplam görev sayısı = <span id="counter">{{ toplam_gorev }}</span></p>
 
-            </li>
-        {% endfor %}
-    {% else %}
-        <li>Henüz görev yok.</li>
-    {% endif %}
-    </ul>
-    <form method="POST">
-        <input type="search" name="searchbar"  placeholder="Arama Yap" id="searchbar" value="{{search}}">
-        <button type="submit">Ara</button>
-    </form>
+<script>
+/*
+🔥 EKLEME (AJAX)
+*/
+document.querySelector("#addForm").addEventListener("submit", function(e) {
+    e.preventDefault();
 
-    <p>Toplam görev sayısı = {{ toplam_gorev }}</p>
+    const input = document.querySelector('input[name="task"]');
+    const value = input.value;
+
+    fetch("/add", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: "task=" + encodeURIComponent(value)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // yeni eleman ekle
+            const li = document.createElement("li");
+            li.innerHTML = `
+                ${data.task}
+                <button onclick="deleteTask(${data.total - 1})">Sil</button>
+            `;
+
+            document.querySelector("#taskList").appendChild(li);
+
+            // sayaç güncelle
+            document.querySelector("#counter").textContent = data.total;
+
+            // input temizle
+            input.value = "";
+        }
+    });
+});
+
+
+/*
+🔥 SİLME (AJAX)
+*/
+function deleteTask(index) {
+    fetch("/delete", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: "index=" + index
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // şimdilik basit çözüm
+        }
+    });
+}
+</script>
 
 </body>
 </html>

@@ -1,41 +1,48 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
 tasks = []
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
 def home():
-    search = ""
-    filtered_tasks = tasks
+    return render_template("index.html", tasks=tasks, toplam_gorev=len(tasks))
 
-    if request.method == "POST":
-        search = request.form.get("searchbar")
-        new_task = request.form.get("task")
-        delete_index = request.form.get("delete_index")
 
-        if search:
-            filtered_tasks = [t for t in tasks if search.lower() in t.lower()]
-        else:
-            filtered_tasks = tasks
+@app.route("/add", methods=["POST"])
+def add_task():
+    new_task = request.form.get("task")
 
-        if delete_index is not None:
-            index = int(delete_index)
-            if 0 <= index < len(tasks):
-                tasks.pop(index)
+    if new_task:
+        tasks.append(new_task)
 
-        else:
-            if new_task:
-                tasks.append(new_task)
+        return jsonify({
+            "success": True,
+            "task": new_task,
+            "total": len(tasks)
+        })
 
-    toplam = len(tasks)
+    return jsonify({"success": False})
 
-    return render_template(
-        "index.html",
-        tasks=filtered_tasks,
-        toplam_gorev=toplam,
-        search=search
-    )
+
+@app.route("/delete", methods=["POST"])
+def delete_task():
+    index = request.form.get("index")
+
+    if index is not None:
+        index = int(index)
+
+        if 0 <= index < len(tasks):
+            deleted = tasks.pop(index)
+
+            return jsonify({
+                "success": True,
+                "deleted": deleted,
+                "total": len(tasks)
+            })
+
+    return jsonify({"success": False})
+
 
 if __name__ == "__main__":
     app.run(debug=True)
